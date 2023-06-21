@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+
+
+# Check container is run as root
+if [ $(id -u) != 0 ]; then
+    echo "[Entrypoint] WARNING! Container should run as root. Currently running as user $(id -u)."
+fi
+
+
+# Adjust user UID, GID and Docker GID
+ADJUST_USER_UID="${ADJUST_USER_UID:-${USER_UID}}"
+ADJUST_USER_GID="${ADJUST_USER_GID:-${USER_GID}}"
+
+
+# Adjust user UID
+if [ "${ADJUST_USER_UID}" != "${USER_UID}" ]; then
+    echo "[Entrypoint] Host's user UID (${ADJUST_USER_UID}) mismatch container's user UID (${USER_UID}). Changing ..."
+
+    EXPRESSION="s/pytorch:x:${USER_UID}:${USER_GID}/pytorch:x:${ADJUST_USER_UID}:${ADJUST_USER_GID}/"
+    echo "[Entrypoint] Executing sed expression '${EXPRESSION}'"
+    sed --in-place --expression="${EXPRESSION}" /etc/passwd
+
+    chown --recursive ${ADJUST_USER_UID} /home/pytorch/
+else
+    echo "[Entrypoint] Host's user UID (${ADJUST_USER_UID}) matches with container's user UID (${USER_UID}). Continue ..."
+fi
+
+
+# Adjust user GID
+if [ "${ADJUST_USER_GID}" != "${USER_GID}" ]; then
+    echo "[Entrypoint] Host's user GID (${ADJUST_USER_GID}) mismatch container's user GID (${USER_GID}). Changing ..."
+
+    EXPRESSION="s/pytorch:x:${USER_GID}/pytorch:x:${ADJUST_USER_GID}/"
+    echo "[Entrypoint] Executing sed expression '${EXPRESSION}'"
+    sed --in-place --expression="${EXPRESSION}" /etc/group
+
+    chgrp --recursive ${ADJUST_USER_GID} /home/pytorch/
+else
+    echo "[Entrypoint] Host's user GID (${ADJUST_USER_GID}) matches with container's user GID (${USER_GID}). Continue ..."
+fi
+
+
+# Run initialization scripts
+for f in /docker-entrypoint-init.d/*; do
+    # Check if executable
+    if [ ! -x "$f" ]; then
+        continue
+    fi
+    echo "[Entrypoint] $0: running $f"
+    sh -c "$f"
+    echo
+done
+
+
+echo "[Entrypoint] Running user command : $@"
+exec sudo --user=pytorch --set-home "$@"

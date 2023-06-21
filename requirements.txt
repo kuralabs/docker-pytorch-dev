@@ -1,0 +1,8 @@
+tox
+webdev
+flake8
+pep8-naming
+cryptography
+torch
+torchvision
+torchaudio

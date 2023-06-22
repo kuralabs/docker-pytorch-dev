@@ -6,3 +6,8 @@ cryptography
 torch
 torchvision
 torchaudio
+torchinfo
+pandas
+numpy
+matplotlib
+tqdm

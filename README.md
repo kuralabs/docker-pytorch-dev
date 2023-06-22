@@ -12,6 +12,11 @@ Deep Learning and Python 3 development. It install, among other things:
 - torch
 - torchvision
 - torchaudio
+- torchinfo
+- pandas
+- numpy
+- matplotlib
+- tqdm
 - python3
 - python3-dev
 - python3-pip
@@ -40,7 +45,7 @@ Usage
 To take advantage of CUDA capabilities and use the GPU in Docker containers,
 first you need to install [Nvidia Container Toolkit](https://github.com/NVIDIA/nvidia-docker/)
 
-Then you should be able to pass the ``--gpus all`` option to the docker run
+Then you should be able to pass the `--gpus all` option to the docker run
 command:
 
     docker pull kuralabs/pytorch-dev:latest
